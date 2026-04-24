@@ -233,6 +233,13 @@ export default function App() {
     const el = document.getElementById(id)
     if (!el) return
     el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (window.location.hash) {
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${window.location.search}`,
+      )
+    }
   }
 
   function validateEmail(value: string) {
@@ -373,9 +380,13 @@ export default function App() {
             </button>
           </nav>
 
-          <a className="navCta" href="#contact" onClick={() => scrollToSection('contact')}>
+          <button
+            type="button"
+            className="navCta"
+            onClick={() => scrollToSection('contact')}
+          >
             Let&apos;s talk
-          </a>
+          </button>
         </div>
       </header>
 
@@ -726,9 +737,13 @@ export default function App() {
           <span>
             © {new Date().getFullYear()} {name}
           </span>
-          <a className="footerLink" href="#home" onClick={() => scrollToSection('home')}>
+          <button
+            type="button"
+            className="footerLink"
+            onClick={() => scrollToSection('home')}
+          >
             Back to top
-          </a>
+          </button>
         </div>
       </footer>
     </div>
