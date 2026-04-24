@@ -1,0 +1,70 @@
+:root {
+  --text: #cbd0d8;
+  --text-h: #ffffff;
+  --muted: rgba(203, 208, 216, 0.78);
+
+  --bg: #07070a;
+  --border: rgba(255, 255, 255, 0.10);
+  --code-bg: rgba(255, 212, 0, 0.12);
+
+  --accent: #ffd400;
+  --accent-bg: rgba(255, 212, 0, 0.10);
+  --accent-border: rgba(255, 212, 0, 0.50);
+
+  --shadow: rgba(0, 0, 0, 0.45) 0 18px 60px -28px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: var(--sans);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+
+  color-scheme: dark;
+  font: 16px/1.6 var(--sans);
+  letter-spacing: 0.08px;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--heading);
+  color: var(--text-h);
+  margin: 0;
+  font-weight: 750;
+}
+
+p {
+  margin: 0;
+}
+
+code {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 6px;
+  color: var(--text-h);
+  background: var(--code-bg);
+  padding: 2px 8px;
+  font-size: 0.95em;
+}
