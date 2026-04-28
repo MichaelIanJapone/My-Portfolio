@@ -130,20 +130,20 @@ export default function App() {
         repoUrl: 'https://github.com/MichaelIanJapone/Habit-Streak',
       },
       {
+        title: 'Agency Portal',
+        description:
+          'Agency Portal is a multi-tenant SaaS platform for agencies managing clients, projects, and task delivery workflows. Users sign in securely, create account-scoped workspaces, track statuses, deadlines, and progress, and close or reopen projects with rule-based checks. It includes activity logging, dashboard analytics, mobile-responsive navigation, archived records, and role-ready architecture for scalable growth in production environments.',
+        tags: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Prisma ORM', 'PostgreSQL', 'Clerk Authentication', 'Zod'],
+        liveUrl: 'https://agency-portal-orpin.vercel.app',
+        repoUrl: 'https://github.com/MichaelIanJapone/Agency-Portal',
+      },
+      {
         title: 'Converge Payment-to-Router',
         description:
           'This is a dual-portal SPA: customers log in, upload a payment receipt, and track requests by ID; admins review a queue, update status through a fixed pipeline, add notes, and issue a router key when complete. Built as a client-only demo with browser storage and receipt previews via data URLs.',
         tags: ['React', 'React Router', 'Vite', 'JavaScript', 'CSS'],
         liveUrl: 'https://converge-payment-to-router.vercel.app',
         repoUrl: 'https://github.com/MichaelIanJapone/Converge_Payment-to-Router',
-      },
-      {
-        title: 'Quezelco Pay',
-        description:
-          'Quezelco Pay is a frontend React electric bill payment portal demo. Members use demo sign-in, review PHP balances and billing history, and pay by amount with GCash, Maya, online banking, or cards. It generates references, keeps session payment history, and supports reference lookup. It also covers FAQs, maintenance banners, quick-pay chips, and idle session timeout.',
-        tags: ['React', 'React Router', 'Vite', 'JavaScript', 'CSS'],
-        liveUrl: 'https://quezelco-pay.vercel.app',
-        repoUrl: 'https://github.com/MichaelIanJapone/Quezelco-Pay',
       },
     ],
     [],
