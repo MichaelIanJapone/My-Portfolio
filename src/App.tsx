@@ -486,7 +486,7 @@ export default function App() {
           <div className="sectionHead">
             <h2>Projects</h2>
             <p className="sectionLead">
-              A few example cards you can replace with your real work.
+              Heres a showcase of some of my recent work. I enjoy building projects that solve real problems and demonstrate my skills in full-stack development, with a focus on clean code, efficient architecture, and user-friendly design.
             </p>
           </div>
 
