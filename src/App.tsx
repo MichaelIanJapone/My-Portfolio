@@ -456,18 +456,17 @@ export default function App() {
             <article className="card">
               <SectionHeading title="About" variant="about" />
               <p>
-                I&apos;m a Full-Stack Developer with expertise in React, TypeScript, and Node.js,
+                I&apos;m a Full-Stack Developer with expertise in React, TypeScript, Node.js, Express.js,
                 building scalable, high-performance applications that blend clean architecture with
-                intuitive design. I&apos;ve developed and deployed AI-powered SaaS platforms and
-                real-time web applications using technologies like Supabase, PostgreSQL, OpenAI API,
-                and WebSockets, turning complex ideas into seamless, user-centered experiences.
+                intuitive design. I&apos;ve developed and deployed SaaS platforms and
+                real-time web applications using technologies like PostgreSQL, REST API,
+                and with the help of modern tools and technologies, 
+                turning complex ideas into seamless, user-centered experiences.
               </p>
               <p>
                 I thrive on collaboration, problem-solving, and end-to-end project ownership,
                 sharing knowledge, refining workflows, and designing systems that balance
-                performance with simplicity. Lately, my focus has been on Generative AI and
-                RAG-based applications, exploring how intelligent systems can elevate user
-                interaction and functionality. I&apos;m driven by curiosity, continuous learning, and
+                performance with simplicity.I&apos;m driven by curiosity, continuous learning, and
                 building software that is fast, reliable, and genuinely impactful.
               </p>
             </article>
