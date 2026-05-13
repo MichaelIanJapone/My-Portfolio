@@ -1,751 +1,809 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import heroImg from './assets/Hero-Formal.jpg'
+import { useEffect, useState, type ReactNode } from 'react'
+import { ChatWidget } from './ChatWidget'
 import './App.css'
+
+/** Remote full-page screenshot (no API key). Falls back to gradient if the image fails to load. */
+function previewFromLiveUrl(liveUrl: string, width = 1200) {
+  return `https://s.wordpress.com/mshots/v1/${encodeURIComponent(liveUrl)}?w=${width}`
+}
+
+const SECTION_ICON_SVG = {
+  width: 19,
+  height: 19,
+  viewBox: '0 0 24 24' as const,
+  fill: 'none' as const,
+  stroke: 'currentColor',
+  strokeWidth: 1.55,
+  'aria-hidden': true as const,
+}
+
+function IconPin(props: { className?: string }) {
+  return (
+    <svg className={props.className} width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="10" r="2.5" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+function IconMail(props: { className?: string }) {
+  return (
+    <svg className={props.className} width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 6h16v12H4V6Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="m4 7 8 6 8-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconDownload(props: { className?: string }) {
+  return (
+    <svg className={props.className} width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 4v11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="m8 12 4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 20h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconSun(props: { className?: string }) {
+  return (
+    <svg className={props.className} width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function IconMoon(props: { className?: string }) {
+  return (
+    <svg className={props.className} width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M20 14.5A8.5 8.5 0 0 1 9.5 4 6.5 6.5 0 1 0 20 14.5Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconCertificateGlyph() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M7 3h10a2 2 0 0 1 2 2v14l-7-3.5L5 19V5a2 2 0 0 1 2-2Z"
+        stroke="currentColor"
+        strokeWidth="1.55"
+        strokeLinejoin="round"
+      />
+      <path d="M9 8h6M9 11h6" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconOpenExternal(props: { className?: string }) {
+  return (
+    <svg
+      className={props.className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M14 3h7v7M10 14L21 3M7 7H5v12h12v-5"
+        stroke="currentColor"
+        strokeWidth="1.65"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconLiveDemo() {
+  return <IconOpenExternal className="projectLinkIcon projectLinkIconStroke" />
+}
+
+function SectionHeading({
+  title,
+  variant,
+}: {
+  title: string
+  variant: 'about' | 'experience' | 'project' | 'certificates' | 'socials'
+}) {
+  let glyph: ReactNode = null
+  switch (variant) {
+    case 'about':
+      glyph = (
+        <svg {...SECTION_ICON_SVG}>
+          <circle cx="12" cy="8" r="3.5" />
+          <path
+            d="M6 20.5v-1.2c0-2.6 2.4-4.8 6-4.8s6 2.2 6 4.8v1.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )
+      break
+    case 'experience':
+      glyph = (
+        <svg {...SECTION_ICON_SVG}>
+          <path
+            d="M8 8V6a4 4 0 0 1 8 0v2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <rect x="4" y="8" width="16" height="12" rx="2" strokeLinejoin="round" />
+          <path d="M4 12h16" strokeLinecap="round" />
+        </svg>
+      )
+      break
+    case 'project':
+      glyph = (
+        <svg {...SECTION_ICON_SVG}>
+          <rect x="3" y="4" width="8" height="8" rx="1.5" strokeLinejoin="round" />
+          <rect x="13" y="4" width="8" height="8" rx="1.5" strokeLinejoin="round" />
+          <rect x="3" y="14" width="8" height="8" rx="1.5" strokeLinejoin="round" />
+          <rect x="13" y="14" width="8" height="8" rx="1.5" strokeLinejoin="round" />
+        </svg>
+      )
+      break
+    case 'certificates':
+      glyph = (
+        <svg {...SECTION_ICON_SVG}>
+          <circle cx="12" cy="10" r="3.5" />
+          <path d="M8 14 6 21l6-3 6 3-2-7" strokeLinejoin="round" strokeLinecap="round" />
+        </svg>
+      )
+      break
+    case 'socials':
+      glyph = (
+        <svg {...SECTION_ICON_SVG}>
+          <path
+            d="M10 13a5 5 0 0 1 0-7l1.2-1.2a5 5 0 0 1 7.1 7.1L16 13"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M14 11a5 5 0 0 1 0 7l-1.2 1.2a5 5 0 0 1-7.1-7.1L8 11"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )
+      break
+    default:
+      break
+  }
+
+  return (
+    <div className="sectionHeadingRow">
+      <span className="sectionHeadingIcon">{glyph}</span>
+      <h2>{title}</h2>
+    </div>
+  )
+}
 
 type Project = {
   title: string
   description: string
-  tags: string[]
-  liveUrl?: string
-  repoUrl?: string
+  liveUrl: string
+  repoUrl: string
+  accent: 'projectAccentOne' | 'projectAccentTwo'
+  /** Optional: put a file in `public/previews/` for a sharper screenshot than the auto preview */
+  previewImage?: string
 }
 
-type Toast =
-  | { type: 'success'; message: string }
-  | { type: 'error'; message: string }
+type SkillLevel = 'Expert' | 'Advanced' | 'Intermediate'
 
-type SkillLevel = 'Expert' | 'Advanced' | 'Intermediate' | 'Beginner'
-
-type SkillEntry = {
+type TechItem = {
   name: string
+  iconSrc: string
   level: SkillLevel
+  /** Simple Icons are black SVGs — invert on dark UI so they stay visible on dark chips */
+  invertOnDark?: boolean
 }
 
 type SkillCategory = {
   title: string
-  icon: 'stack' | 'code' | 'globe' | 'database' | 'layers' | 'wrench'
-  skills: SkillEntry[]
+  items: TechItem[]
 }
 
-function skillLevelWidth(level: SkillLevel) {
-  switch (level) {
-    case 'Expert':
-      return 98
-    case 'Advanced':
-      return 78
-    case 'Intermediate':
-      return 55
-    case 'Beginner':
-      return 28
-    default:
-      return 0
-  }
-}
+/** Served from `public/Michael-Ian-Japone Resume.pdf` (space before `Resume`). */
+const RESUME_PDF_HREF = encodeURI('/Michael-Ian-Japone Resume.pdf')
+const RESUME_DOWNLOAD_NAME = 'Michael-Ian-Japone Resume.pdf'
 
-function SkillCategoryIcon({ kind }: { kind: SkillCategory['icon'] }) {
-  const common = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', 'aria-hidden': true as const }
-  switch (kind) {
-    case 'stack':
-      return (
-        <svg {...common}>
-          <rect x="4" y="5" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="1.75" fill="none" />
-          <rect x="4" y="10" width="16" height="4" rx="1" stroke="currentColor" strokeWidth="1.75" fill="none" />
-          <rect x="4" y="15" width="11" height="4" rx="1" stroke="currentColor" strokeWidth="1.75" fill="none" />
-        </svg>
-      )
-    case 'code':
-      return (
-        <svg {...common}>
-          <path
-            d="m15 7-5 5 5 5M9 7l-5 5 5 5"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )
-    case 'globe':
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75" />
-          <path
-            d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
-      )
-    case 'database':
-      return (
-        <svg {...common}>
-          <ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" strokeWidth="1.75" />
-          <path d="M5 6v6c0 1.7 3 3 7 3s7-1.3 7-3V6" stroke="currentColor" strokeWidth="1.75" />
-          <path d="M5 12v6c0 1.7 3 3 7 3s7-1.3 7-3v-6" stroke="currentColor" strokeWidth="1.75" />
-        </svg>
-      )
-    case 'layers':
-      return (
-        <svg {...common}>
-          <path
-            d="M12 4 4 8l8 4 8-4-8-4Z"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinejoin="round"
-          />
-          <path d="m4 12 8 4 8-4M4 16l8 4 8-4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-        </svg>
-      )
-    case 'wrench':
-      return (
-        <svg {...common}>
-          <path
-            d="M14.7 6.3a4 4 0 0 0-5.6 5.6L5 16v3h3l5.1-5.1a4 4 0 0 0 5.6-5.6"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path d="M13 8 16 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-        </svg>
-      )
-    default:
-      return null
-  }
-}
+const CONTACT_EMAIL = 'michaelianjapone@gmail.com'
+const CONTACT_MAILTO = `mailto:${CONTACT_EMAIL}?${new URLSearchParams({
+  subject: 'Message from your portfolio',
+  body: 'Hi Michael,\n\n',
+}).toString()}`
 
+const DEVICON =
+  'https://raw.githubusercontent.com/devicons/devicon/master/icons'
+
+/** Official brand SVGs from Simple Icons (Devicon has no Cursor logo). */
+const SIMPLE_ICONS = 'https://cdn.jsdelivr.net/npm/simple-icons/icons'
+
+const CERTIFICATES: { title: string; url: string }[] = [
+  {
+    title: 'DICT — Digital Literacy: Introduction to Data Analytics',
+    url: 'https://drive.google.com/file/d/1347iRx78ugsrR2ZBaXS0PbXkcZ3h3GEq/view?usp=drive_link',
+  },
+  {
+    title: 'DICT — Internet Media and Information Literacy Training',
+    url: 'https://drive.google.com/file/d/1sanw7z3n1ujFjX3AG6oY5WunjiqJ6KfX/view?usp=drive_link',
+  },
+  {
+    title: 'DICT — Creating Floor Plan and Network Design using MS Visio',
+    url: 'https://drive.google.com/file/d/1Q1sJwhU1OJmy17LVHJltMyo0tfAjB1wL/view?usp=drive_link',
+  },
+  {
+    title: 'PICSPro Membership Certification',
+    url: 'https://drive.google.com/file/d/1Xf6Y8MBav8tPOm8lb7iWS-ff5wo4N0J9/view?usp=drive_link',
+  },
+]
+
+const SOCIAL_LINKS: { label: string; href: string; iconSrc: string; brand: 'github' | 'linkedin' }[] = [
+  {
+    label: 'GitHub',
+    href: 'https://github.com/MichaelIanJapone',
+    iconSrc: `${DEVICON}/github/github-original.svg`,
+    brand: 'github',
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/in/michael-ian-japone-530474344/',
+    iconSrc: `${DEVICON}/linkedin/linkedin-original.svg`,
+    brand: 'linkedin',
+  },
+]
+
+/** Full skill matrix (names + mastery + icons) — matches your portfolio screenshot. */
+const SKILL_CATEGORIES: SkillCategory[] = [
+  {
+    title: 'Front End Development',
+    items: [
+      { name: 'React.js', iconSrc: `${DEVICON}/react/react-original.svg`, level: 'Advanced' },
+      { name: 'TypeScript', iconSrc: `${DEVICON}/typescript/typescript-original.svg`, level: 'Advanced' },
+      { name: 'HTML', iconSrc: `${DEVICON}/html5/html5-original.svg`, level: 'Expert' },
+      { name: 'CSS', iconSrc: `${DEVICON}/css3/css3-original.svg`, level: 'Expert' },
+      { name: 'Tailwind CSS', iconSrc: `${DEVICON}/tailwindcss/tailwindcss-original.svg`, level: 'Expert' },
+      { name: 'JavaScript', iconSrc: `${DEVICON}/javascript/javascript-original.svg`, level: 'Advanced' },
+    ],
+  },
+  {
+    title: 'Backend Development',
+    items: [
+      { name: 'Node.js', iconSrc: `${DEVICON}/nodejs/nodejs-original.svg`, level: 'Advanced' },
+      { name: 'TypeScript', iconSrc: `${DEVICON}/typescript/typescript-original.svg`, level: 'Advanced' },
+      { name: 'Express.js', iconSrc: `${DEVICON}/express/express-original.svg`, level: 'Advanced' },
+      { name: 'MongoDB', iconSrc: `${DEVICON}/mongodb/mongodb-original.svg`, level: 'Intermediate' },
+      { name: 'REST APIs', iconSrc: `${DEVICON}/swagger/swagger-original.svg`, level: 'Intermediate' },
+    ],
+  },
+  {
+    title: 'Programming Languages',
+    items: [
+      { name: 'Python', iconSrc: `${DEVICON}/python/python-original.svg`, level: 'Advanced' },
+      { name: 'C#', iconSrc: `${DEVICON}/csharp/csharp-original.svg`, level: 'Intermediate' },
+      { name: 'C++', iconSrc: `${DEVICON}/cplusplus/cplusplus-original.svg`, level: 'Intermediate' },
+      { name: 'JavaScript', iconSrc: `${DEVICON}/javascript/javascript-original.svg`, level: 'Advanced' },
+      { name: 'TypeScript', iconSrc: `${DEVICON}/typescript/typescript-original.svg`, level: 'Advanced' },
+    ],
+  },
+  {
+    title: 'Database Management',
+    items: [
+      { name: 'MongoDB', iconSrc: `${DEVICON}/mongodb/mongodb-original.svg`, level: 'Intermediate' },
+      { name: 'MsSQL', iconSrc: `${DEVICON}/microsoftsqlserver/microsoftsqlserver-plain.svg`, level: 'Intermediate' },
+      { name: 'PostgreSQL', iconSrc: `${DEVICON}/postgresql/postgresql-original.svg`, level: 'Intermediate' },
+    ],
+  },
+  {
+    title: 'Frameworks & Tools',
+    items: [
+      { name: 'ASP.NET', iconSrc: `${DEVICON}/dot-net/dot-net-original.svg`, level: 'Intermediate' },
+      { name: 'React.js', iconSrc: `${DEVICON}/react/react-original.svg`, level: 'Advanced' },
+      { name: 'TypeScript', iconSrc: `${DEVICON}/typescript/typescript-original.svg`, level: 'Advanced' },
+      { name: 'Node.js', iconSrc: `${DEVICON}/nodejs/nodejs-original.svg`, level: 'Advanced' },
+      { name: 'Express.js', iconSrc: `${DEVICON}/express/express-original.svg`, level: 'Advanced' },
+    ],
+  },
+  {
+    title: 'Tools & Technologies',
+    items: [
+      {
+        name: 'Cursor',
+        iconSrc: `${SIMPLE_ICONS}/cursor.svg`,
+        level: 'Intermediate',
+        invertOnDark: true,
+      },
+      { name: 'Figma', iconSrc: `${DEVICON}/figma/figma-original.svg`, level: 'Intermediate' },
+      { name: 'Git', iconSrc: `${DEVICON}/git/git-original.svg`, level: 'Intermediate' },
+      { name: 'GitHub', iconSrc: `${DEVICON}/github/github-original.svg`, level: 'Advanced' },
+    ],
+  },
+]
+
+/** Summary rows on the dashboard card (first two categories). */
+const FRONTEND_TECH = SKILL_CATEGORIES[0].items
+const BACKEND_TECH = SKILL_CATEGORIES[1].items
 
 export default function App() {
-  const name = 'Michael Ian Japone'
+  const [darkMode, setDarkMode] = useState(false)
+  const [activeProject, setActiveProject] = useState(0)
+  const [previewBroken, setPreviewBroken] = useState(false)
+  const [techStackModalOpen, setTechStackModalOpen] = useState(false)
 
-  const projects: Project[] = useMemo(
-    () => [
-      {
-        title: 'Habit Streak',
-        description:
-          'Habit Streaks is a full-stack habit tracker. Users sign up and sign in, create habits with custom names and accent colors, and mark completion days on a month calendar (including past months). The app shows current streak, longest streak, total check-ins, and a 28-day activity heatmap. Habits can be edited, archived, restored, or deleted.',
-        tags: ['React', 'TypeScript', 'Tailwind CSS', 'PostgreSQL', 'Node.js', 'Auth.js'],
-        liveUrl: 'https://habit-streak-three.vercel.app',
-        repoUrl: 'https://github.com/MichaelIanJapone/Habit-Streak',
-      },
-      {
-        title: 'Agency Portal',
-        description:
-          'Agency Portal is a multi-tenant SaaS platform for agencies managing clients, projects, and task delivery workflows. Users sign in securely, create account-scoped workspaces, track statuses, deadlines, and progress, and close or reopen projects with rule-based checks. It includes activity logging, dashboard analytics, mobile-responsive navigation, archived records, and role-ready architecture for scalable growth in production environments.',
-        tags: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Prisma ORM', 'PostgreSQL', 'Clerk Authentication', 'Zod'],
-        liveUrl: 'https://agency-portal-orpin.vercel.app',
-        repoUrl: 'https://github.com/MichaelIanJapone/Agency-Portal',
-      },
-      {
-        title: 'Converge Payment-to-Router',
-        description:
-          'This is a dual-portal SPA: customers log in, upload a payment receipt, and track requests by ID; admins review a queue, update status through a fixed pipeline, add notes, and issue a router key when complete. Built as a client-only demo with browser storage and receipt previews via data URLs.',
-        tags: ['React', 'React Router', 'Vite', 'JavaScript', 'CSS'],
-        liveUrl: 'https://converge-payment-to-router.vercel.app',
-        repoUrl: 'https://github.com/MichaelIanJapone/Converge_Payment-to-Router',
-      },
-    ],
-    [],
-  )
+  const projects: Project[] = [
+    {
+      title: 'Habit Streak',
+      description:
+        'Habit Streaks is a full-stack habit tracker. Users sign up and sign in, create habits with custom names and accent colors, and mark completion days on a month calendar (including past months). The app shows current streak, longest streak, total check-ins, and a 28-day activity heatmap. Habits can be edited, archived, restored, or deleted.',
+      liveUrl: 'https://habit-streak-three.vercel.app',
+      repoUrl: 'https://github.com/MichaelIanJapone/Habit-Streak',
+      accent: 'projectAccentOne',
+    },
+    {
+      title: 'Agency Portal',
+      description:
+        'Agency Portal is a multi-tenant SaaS platform for agencies managing clients, projects, and task delivery workflows. Users sign in securely, create account-scoped workspaces, track statuses, deadlines, and progress, and close or reopen projects with rule-based checks. It includes activity logging, dashboard analytics, mobile-responsive navigation, archived records, and role-ready architecture for scalable growth in production environments.',
+      liveUrl: 'https://agency-portal-orpin.vercel.app',
+      repoUrl: 'https://github.com/MichaelIanJapone/Agency-Portal',
+      accent: 'projectAccentTwo',
+    },
+  ]
+  const project = projects[activeProject]
+  const projectCount = projects.length
 
-  const skillCategories: SkillCategory[] = useMemo(
-    () => [
-      {
-        title: 'Front End Development',
-        icon: 'globe',
-        skills: [
-          { name: 'React.js', level: 'Advanced' },
-          { name: 'TypeScript', level: 'Advanced' },
-          { name: 'HTML', level: 'Expert' },
-          { name: 'CSS', level: 'Expert' },
-          { name: 'Tailwind CSS', level: 'Expert' },
-          { name: 'JavaScript', level: 'Advanced' },
-        ],
-      },
-      {
-        title: 'Backend Development',
-        icon: 'stack',
-        skills: [
-          { name: 'Node.js', level: 'Advanced' },
-          { name: 'TypeScript', level: 'Advanced' },
-          { name: 'Express.js', level: 'Advanced' },
-          { name: 'MongoDB', level: 'Intermediate' },
-          { name: 'REST APIs', level: 'Intermediate' },
-        ],
-      },
-      {
-        title: 'Programming Languages',
-        icon: 'code',
-        skills: [
-          { name: 'Python', level: 'Advanced' },
-          { name: 'C#', level: 'Intermediate' },
-          { name: 'C++', level: 'Intermediate' },
-          { name: 'JavaScript', level: 'Advanced' },
-          { name: 'TypeScript', level: 'Advanced' },
-        ],
-      },  
-      {
-        title: 'Database Management',
-        icon: 'database',
-        skills: [
-          { name: 'MongoDB', level: 'Intermediate' },
-          { name: 'MsSQL', level: 'Intermediate' },
-          {name: 'PostgreSQL', level: 'Intermediate' },
-        ],
-      },
-      {
-        title: 'Frameworks & Tools',
-        icon: 'layers',
-        skills: [
-          { name: 'ASP.NET', level: 'Intermediate' },
-          { name: 'React.js', level: 'Advanced' },
-          { name: 'TypeScript', level: 'Advanced' },
-          { name: 'Node.js', level: 'Advanced' },
-          { name: 'Express.js', level: 'Advanced' },
-        ],
-      },
-      {
-        title: 'Tools & Technologies',
-        icon: 'wrench',
-        skills: [
-          { name: 'Cursor', level: 'Intermediate' },
-          { name: 'Figma', level: 'Intermediate' },
-          { name: 'Git', level: 'Intermediate' },
-          { name: 'GitHub', level: 'Advanced' },
-        ],
-      },
-    ],
-    [],
-  )
+  function goPrevProject() {
+    setPreviewBroken(false)
+    setActiveProject((i) => (i - 1 + projectCount) % projectCount)
+  }
 
-  const [form, setForm] = useState({ name: '', email: '', message: '' })
-  const [toast, setToast] = useState<Toast | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  function goNextProject() {
+    setPreviewBroken(false)
+    setActiveProject((i) => (i + 1) % projectCount)
+  }
 
   useEffect(() => {
-    if (!toast) return
-    const t = window.setTimeout(() => setToast(null), 3000)
-    return () => window.clearTimeout(t)
-  }, [toast])
-
-  function scrollToSection(id: string) {
-    const el = document.getElementById(id)
-    if (!el) return
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    if (window.location.hash) {
-      window.history.replaceState(
-        null,
-        '',
-        `${window.location.pathname}${window.location.search}`,
-      )
+    if (!techStackModalOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setTechStackModalOpen(false)
     }
-  }
-
-  function validateEmail(value: string) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
-  }
-
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const trimmedName = form.name.trim()
-    const trimmedEmail = form.email.trim()
-    const trimmedMessage = form.message.trim()
-
-    if (trimmedName.length < 2) {
-      setToast({ type: 'error', message: 'Please enter your name.' })
-      return 
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', onKeyDown)
     }
-    if (!validateEmail(trimmedEmail)) {
-      setToast({ type: 'error', message: 'Please enter a valid email.' })
-      return
-    }
-    if (trimmedMessage.length < 10) {
-      setToast({
-        type: 'error',
-        message: 'Message should be at least 10 characters.',
-      })
-      return
-    }
+  }, [techStackModalOpen])
 
-    try {
-      setSubmitting(true)
-      const web3Key = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY?.trim()
-      const apiOrigin = import.meta.env.VITE_CONTACT_API_ORIGIN?.replace(/\/$/, '') ?? ''
-
-      const resp = web3Key
-        ? await fetch('https://api.web3forms.com/submit', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-            },
-            body: JSON.stringify({
-              access_key: web3Key,
-              subject: `Portfolio contact from ${trimmedName}`,
-              from_name: trimmedName,
-              email: trimmedEmail,
-              message: trimmedMessage,
-            }),
-          })
-        : await fetch(`${apiOrigin}/api/contact`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: trimmedName,
-              email: trimmedEmail,
-              message: trimmedMessage,
-            }),
-          })
-
-      const data: unknown = await resp.json().catch(() => null)
-
-      if (web3Key) {
-        const payload = data as { success?: boolean; message?: string } | null
-        if (!payload?.success) {
-          setToast({
-            type: 'error',
-            message: payload?.message?.trim() || 'Could not send message.',
-          })
-          return
-        }
-        setToast({ type: 'success', message: 'Message sent! Thank you.' })
-        setForm({ name: '', email: '', message: '' })
-        return
-      }
-
-      if (!resp.ok) {
-        const errMsg =
-          typeof data === 'object' && data && 'error' in data
-            ? String((data as { error?: unknown }).error ?? 'Request failed')
-            : 'Request failed'
-        setToast({ type: 'error', message: errMsg })
-        return
-      }
-
-      const notice =
-        typeof data === 'object' && data !== null && 'notice' in data
-          ? String((data as { notice?: unknown }).notice ?? '').trim()
-          : ''
-      setToast({
-        type: 'success',
-        message: notice ? `Message received. ${notice}` : 'Message sent! Thank you.',
-      })
-      setForm({ name: '', email: '', message: '' })
-    } catch {
-      setToast({
-        type: 'error',
-        message:
-          'Network error. Run npm run dev (starts the API and site), set VITE_WEB3FORMS_ACCESS_KEY for static hosting, or set VITE_CONTACT_API_ORIGIN to your deployed API.',
-      })
-    } finally {
-      setSubmitting(false)
-    }
+  function projectPreviewSrc(p: Project, thumb?: boolean) {
+    if (p.previewImage) return p.previewImage
+    return previewFromLiveUrl(p.liveUrl, thumb ? 400 : 1200)
   }
 
   return (
-    <div className="portfolio">
-      <a className="skipLink" href="#about">
-        Skip to content
-      </a>
-
-      <header className="topNav">
-        <div className="navInner">
-          <div className="brand" aria-label={`${name} brand`}>
-            <span className="brandDot" aria-hidden="true" />
-            <span className="brandText">{name}</span>
+    <div className={`dashboardPage ${darkMode ? 'darkMode' : ''}`}>
+      <main className="dashboardShell">
+        <section className="profileCard card">
+          <div className="avatar">
+            <img
+              src="/michael-ian-japone-portrait.png"
+              alt="Michael Ian Japone"
+              width={200}
+              height={200}
+              decoding="async"
+            />
           </div>
-
-          <nav className="navLinks" aria-label="Primary">
-            <button className="navLink" onClick={() => scrollToSection('about')}>
-              About
-            </button>
-            <button
-              className="navLink"
-              onClick={() => scrollToSection('projects')}
-            >
-              Projects
-            </button>
-            <button
-              className="navLink"
-              onClick={() => scrollToSection('skills')}
-            >
-              Skills
-            </button>
-            <button
-              className="navLink"
-              onClick={() => scrollToSection('contact')}
-            >
-              Contact
-            </button>
-          </nav>
-
+          <div className="profileInfo">
+            <h1>Michael Ian Japone</h1>
+            <p className="location">
+              <IconPin className="locationPin" />
+              <span>Quezon, Philippines</span>
+            </p>
+            <p className="role">Full-Stack Developer</p>
+            <div className="actionRow">
+              <a className="pillButton" href={CONTACT_MAILTO}>
+                <IconMail />
+                Send email
+              </a>
+              <a
+                className="pillButton"
+                href={RESUME_PDF_HREF}
+                download={RESUME_DOWNLOAD_NAME}
+                aria-label="Download resume PDF"
+              >
+                <IconDownload />
+                Resume
+              </a>
+            </div>
+          </div>
           <button
             type="button"
-            className="navCta"
-            onClick={() => scrollToSection('contact')}
+            className="toggleButton"
+            onClick={() => setDarkMode((state) => !state)}
+            aria-label="Toggle theme"
           >
-            Let&apos;s talk
+            <IconSun className="toggleIcon toggleIconSun" />
+            <IconMoon className="toggleIcon toggleIconMoon" />
+            <span className="toggleKnob" />
           </button>
-        </div>
-      </header>
+        </section>
 
-      <main className="main">
-        <section id="home" className="section heroSection">
-          <div className="heroGrid">
-            <div className="heroCopy">
-              <div className="kicker">Michael Ian J. Japone</div>
-              <h1 className="heroTitle">Full-Stack Developer</h1>
-              <p className="heroLead">
-                I'm a Full Stack Developer specializing in building scalable and 
-                user-focused web applications. I enjoy transforming complex problems 
-                into efficient digital solutions, together with the use of modern
-                tools and technologies such as AI.
+        <section className="contentGrid">
+          <div className="leftStack">
+            <article className="card">
+              <SectionHeading title="About" variant="about" />
+              <p>
+                I&apos;m a Full-Stack Developer with expertise in React, TypeScript, and Node.js,
+                building scalable, high-performance applications that blend clean architecture with
+                intuitive design. I&apos;ve developed and deployed AI-powered SaaS platforms and
+                real-time web applications using technologies like Supabase, PostgreSQL, OpenAI API,
+                and WebSockets, turning complex ideas into seamless, user-centered experiences.
               </p>
+              <p>
+                I thrive on collaboration, problem-solving, and end-to-end project ownership,
+                sharing knowledge, refining workflows, and designing systems that balance
+                performance with simplicity. Lately, my focus has been on Generative AI and
+                RAG-based applications, exploring how intelligent systems can elevate user
+                interaction and functionality. I&apos;m driven by curiosity, continuous learning, and
+                building software that is fast, reliable, and genuinely impactful.
+              </p>
+            </article>
 
-              <div className="heroActions">
+            <article className="card techStackCard">
+              <div className="techStackHeader">
+                <div className="techStackTitleRow">
+                  <span className="techStackIcon" aria-hidden="true">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path
+                        d="M12 2 2 7l10 5 10-5-10-5Z"
+                        stroke="currentColor"
+                        strokeWidth="1.55"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M2 12 12 17l10-5"
+                        stroke="currentColor"
+                        strokeWidth="1.55"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M2 17 12 22l10-5"
+                        stroke="currentColor"
+                        strokeWidth="1.55"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <h2 className="techStackHeading">Tech Stack</h2>
+                </div>
                 <button
-                  className="btn btnPrimary"
                   type="button"
-                  onClick={() => scrollToSection('projects')}
+                  className="techStackSeeAll"
+                  onClick={() => setTechStackModalOpen(true)}
                 >
-                  View Projects
-                </button>
-                <button
-                  className="btn btnGhost"
-                  type="button"
-                  onClick={() => scrollToSection('contact')}
-                >
-                  Contact
+                  See all
+                  <span className="techStackChevron" aria-hidden="true">
+                    ›
+                  </span>
                 </button>
               </div>
-
-            </div>
-
-            <div className="heroVisual" aria-hidden="true">
-              <div className="avatarWrap">
-                <div className="avatarGlow" />
-                <img src={heroImg} className="avatarImg" alt="" />
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        <section id="about" className="section">
-          <div className="sectionHead">
-            <h2>About</h2>
-            <p className="sectionLead">
-              I turn ideas into modern scalable websites with a goal to resolve problems.
-            </p>
-          </div>
-
-          <div className="twoCol">
-            <div className="card">
-              <h3>What I do</h3>
-              <ul className="list">
-                <li>Develop full-stack web applications using modern technologies and established best practices</li>
-                <li>Build scalable, efficient backend systems and well-structured REST APIs</li>
-                <li>Design responsive, user-centered interfaces with a focus on clarity and usability</li>
-                <li>
-                  Implement secure authentication, authorization, and session handling for multi-user
-                  applications
-                </li>
-                <li>
-                  Integrate relational and document databases with REST APIs for consistent, reliable data
-                  access and persistence
-                </li>
-              </ul>
-            </div>
-
-            <div className="card">
-              <h3>Highlights</h3>
-              <div className="statsGrid">
-                <div className="statCard">
-                  <div className="statNum">2+</div>
-                  <div className="statLabel">Years Web Development</div>
-                </div>
-                <div className="statCard">
-                  <div className="statNum">1+</div>
-                  <div className="statLabel">Years Data Analysis</div>
-                </div>
-                <div className="statCard">
-                  <div className="statNum">Advanced</div>
-                  <div className="statLabel">Mastery in backend development</div>
-                </div>
-                <div className="statCard">
-                  <div className="statNum">Advanced</div>
-                  <div className="statLabel">Mastery in frontend development</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="projects" className="section">
-          <div className="sectionHead">
-            <h2>Projects</h2>
-            <p className="sectionLead">
-              Heres a showcase of some of my recent work. I enjoy building projects that solve real problems and demonstrate my skills in full-stack development.
-            </p>
-          </div>
-
-          <div className="gridCards">
-            {projects.map((p, idx) => (
-              <article className="projectCard" key={`${p.title}-${idx}`}>
-                <div className="projectTop">
-                  <div className="projectIndex" aria-hidden="true">
-                    {String(idx + 1).padStart(2, '0')}
-                  </div>
-                  <div className="projectText">
-                    <h3 className="projectTitle">{p.title}</h3>
-                    <p className="projectDesc">{p.description}</p>
-                  </div>
-                </div>
-
-                <div className="tagRow" aria-label="Technology tags">
-                  {p.tags.map((t) => (
-                    <span className="tag" key={t}>
-                      {t}
-                    </span>
+              <div className="techGroup">
+                <h3 className="techGroupLabel">Front End Development</h3>
+                <div className="skillGrid">
+                  {FRONTEND_TECH.map((tech) => (
+                    <div key={tech.name} className="skillItem">
+                      <img
+                        className={`skillIcon${tech.invertOnDark ? ' skillIconMonoDark' : ''}`}
+                        src={tech.iconSrc}
+                        alt=""
+                        width={40}
+                        height={40}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <span className="skillLabel">{tech.name}</span>
+                    </div>
                   ))}
                 </div>
-
-                <div className="projectActions">
-                  {p.liveUrl ? (
-                    <a
-                      className="btn btnPrimary btnSmall"
-                      href={p.liveUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Live
-                    </a>
-                  ) : (
-                    <button className="btn btnPrimary btnSmall" disabled>
-                      Live
-                    </button>
-                  )}
-
-                  {p.repoUrl ? (
-                    <a
-                      className="btn btnGhost btnSmall"
-                      href={p.repoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Code
-                    </a>
-                  ) : (
-                    <button className="btn btnGhost btnSmall" disabled>
-                      Code
-                    </button>
-                  )}
+              </div>
+              <div className="techGroup">
+                <h3 className="techGroupLabel">Backend Development</h3>
+                <div className="skillGrid">
+                  {BACKEND_TECH.map((tech) => (
+                    <div key={tech.name} className="skillItem">
+                      <img
+                        className={`skillIcon${tech.invertOnDark ? ' skillIconMonoDark' : ''}`}
+                        src={tech.iconSrc}
+                        alt=""
+                        width={40}
+                        height={40}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <span className="skillLabel">{tech.name}</span>
+                    </div>
+                  ))}
                 </div>
-              </article>
-            ))}
-          </div>
-        </section>
+              </div>
+            </article>
 
-        <section id="skills" className="section">
-          <div className="sectionHead">
-            <h2>Skills</h2>
-            <p className="sectionLead">
-              Tech stack grouped by focus area, with self-assessed mastery.
-            </p>
-          </div>
-
-          <div className="skillsCategories">
-            {skillCategories.map((cat) => (
-              <div className="skillCategory" key={cat.title}>
-                <div className="skillCategoryHead">
-                  <span className="skillCategoryIcon">
-                    <SkillCategoryIcon kind={cat.icon} />
-                  </span>
-                  <h3 className="skillCategoryTitle">{cat.title}</h3>
+            <article className="card">
+              <div className="cardHeading">
+                <SectionHeading title="Project" variant="project" />
+                <div className="projectHeadingActions" role="group" aria-label="Project navigation">
+                  <button
+                    type="button"
+                    className="projectNavBtn"
+                    onClick={goPrevProject}
+                    aria-label="Previous project"
+                  >
+                    &lt;
+                  </button>
+                  <button
+                    type="button"
+                    className="projectNavBtn"
+                    onClick={goNextProject}
+                    aria-label="Next project"
+                  >
+                    &gt;
+                  </button>
+                  <a
+                    className="projectOpenLink"
+                    href={project.liveUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Open ${project.title} live site`}
+                  >
+                    ↗
+                  </a>
                 </div>
-                <ul className="skillMasteryList" aria-label={`${cat.title} skills`}>
-                  {cat.skills.map((s) => {
-                    const pct = skillLevelWidth(s.level)
-                    const levelKey = s.level.toLowerCase()
-                    return (
-                      <li className="skillMasteryItem" key={`${cat.title}-${s.name}`}>
-                        <div className="skillMasteryRow">
-                          <span className="skillMasteryName">{s.name}</span>
-                          <span
-                            className={`skillMasteryLevel skillMasteryLevel--${levelKey}`}
-                          >
-                            {s.level}
-                          </span>
-                        </div>
-                        <div
-                          className="skillMasteryTrack"
-                          role="progressbar"
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-valuenow={pct}
-                          aria-label={`${s.name}: ${s.level}`}
+              </div>
+              <div className="projectList">
+                <div className="projectShowcase" key={project.title}>
+                  <div className="projectMedia">
+                    <div className="projectPreviewFrame">
+                      <div
+                        className={`projectPreviewFallback ${project.accent}`}
+                        aria-hidden="true"
+                      />
+                      {!previewBroken ? (
+                        <img
+                          className="projectPreviewImg"
+                          src={projectPreviewSrc(project)}
+                          alt={`${project.title} website preview`}
+                          loading="lazy"
+                          decoding="async"
+                          onError={() => setPreviewBroken(true)}
+                        />
+                      ) : null}
+                    </div>
+                    <div className="projectThumbs">
+                      {projects.map((item, index) => (
+                        <button
+                          key={item.title}
+                          type="button"
+                          className={`projectThumb ${index === activeProject ? 'projectThumbActive' : ''}`}
+                          onClick={() => {
+                            setPreviewBroken(false)
+                            setActiveProject(index)
+                          }}
+                          aria-label={`Show ${item.title}`}
                         >
-                          <div
-                            className={`skillMasteryFill skillMasteryFill--${levelKey}`}
-                            style={{ width: `${pct}%` }}
+                          <img
+                            src={projectPreviewSrc(item, true)}
+                            alt=""
+                            width={56}
+                            height={36}
+                            loading="lazy"
+                            decoding="async"
                           />
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ul>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="projectDetails">
+                    <h3>{project.title}</h3>
+                    <p>{project.description}</p>
+                    <div className="projectLinks">
+                      <a
+                        className="projectLink"
+                        href={project.liveUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <IconLiveDemo />
+                        Live Demo
+                      </a>
+                      <a
+                        className="projectLink"
+                        href={project.repoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <img
+                          className="projectLinkIcon projectLinkIconGithub"
+                          src={`${DEVICON}/github/github-original.svg`}
+                          alt=""
+                          width={16}
+                          height={16}
+                          decoding="async"
+                        />
+                        Repo
+                      </a>
+                    </div>
+                  </div>
+                </div>
               </div>
-            ))}
+            </article>
           </div>
-        </section>
 
-        <section id="contact" className="section">
-          <div className="sectionHead">
-            <h2>Contact</h2>
-            <p className="sectionLead">
-              Want to collaborate? Send a message and I&apos;ll get back to you.
-            </p>
-          </div>
+          <aside className="rightStack">
+            <article className="card">
+              <SectionHeading title="Experience" variant="experience" />
+              <ul className="timeline">
+                <li>
+                  <h3>BS Information Technology</h3>
+                  <p>Polytechnic University of the Philippines</p>
+                  <span>2026</span>
+                </li>
+                <li>
+                  <h3>Data Analyst Intern</h3>
+                  <p>Hometop Marketing &amp; Development Corporation</p>
+                  <span>2025</span>
+                </li>
+                <li>
+                  <h3>Lead Developer / QA</h3>
+                  <p>Capstone: 4Ps System</p>
+                  <span>2024</span>
+                </li>
+                <li>
+                  <h3>Hello world</h3>
+                  <p>Wrote my first line of code.</p>
+                  <span>2021</span>
+                </li>
+              </ul>
+            </article>
 
-          <div className="contactGrid">
-            <form className="contactCard" onSubmit={onSubmit} noValidate>
-              <div className="fieldRow">
-                <label className="field">
-                  <span className="fieldLabel">Name</span>
-                  <input
-                    value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    className="input"
-                    type="text"
-                    name="name"
-                    autoComplete="name"
-                    placeholder="Your name"
-                    required
-                    minLength={2}
-                  />
-                </label>
-                <label className="field">
-                  <span className="fieldLabel">Email</span>
-                  <input
-                    value={form.email}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, email: e.target.value }))
-                    }
-                    className="input"
-                    type="email"
-                    name="email"
-                    autoComplete="email"
-                    placeholder="you@example.com"
-                    required
-                  />
-                </label>
-              </div>
-
-              <label className="field">
-                <span className="fieldLabel">Message</span>
-                <textarea
-                  value={form.message}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, message: e.target.value }))
-                  }
-                  className="textarea"
-                  name="message"
-                  placeholder="Tell me about your project..."
-                  rows={5}
-                  required
-                  minLength={10}
-                />
-              </label>
-
-              <div className="formActions">
-                <button className="btn btnPrimary" type="submit" disabled={submitting}>
-                  {submitting ? 'Sending...' : 'Send message'}
-                </button>
-                <button
-                  className="btn btnGhost"
-                  type="button"
-                  onClick={() => setForm({ name: '', email: '', message: '' })}
-                  disabled={submitting || (!form.name && !form.email && !form.message)}
-                >
-                  Clear
-                </button>
-              </div>
-
-              <p className="formNote">
-                
-              </p>
-            </form>
-
-            <aside className="contactAside" aria-label="Contact details">
-              <div className="card">
-                <h3>Quick links</h3>
-                <div className="quickLinks">
-                  <a className="quickLink" href="mailto:michaelianjapone@gmail.com">
-                    <span className="quickIcon" aria-hidden="true" />
-                    <span>Email</span>
-                  </a>
+            <article className="card">
+              <SectionHeading title="Certificates" variant="certificates" />
+              <div className="certificateList">
+                {CERTIFICATES.map((cert) => (
                   <a
-                    className="quickLink"
-                    href="https://github.com/MichaelIanJapone"
+                    key={cert.url}
+                    className="certificateItem"
+                    href={cert.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Opens in Google Drive (new tab)"
+                  >
+                    <span className="certificateItemInner">
+                      <span className="certificateGlyph" aria-hidden="true">
+                        <IconCertificateGlyph />
+                      </span>
+                      <span className="certificateTitle">{cert.title}</span>
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </article>
+
+            <article className="card">
+              <SectionHeading title="Socials" variant="socials" />
+              <div className="socialList">
+                {SOCIAL_LINKS.map((item) => (
+                  <a
+                    key={item.href}
+                    className="socialLink"
+                    href={item.href}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    <span className="quickIcon" aria-hidden="true" />
-                    <span>GitHub</span>
+                    <span className="socialLinkLeft">
+                      <img
+                        className={`socialLinkBrand socialLinkBrand--${item.brand}`}
+                        src={item.iconSrc}
+                        alt=""
+                        width={22}
+                        height={22}
+                        decoding="async"
+                      />
+                      <span className="socialLinkLabel">{item.label}</span>
+                    </span>
+                    <IconOpenExternal className="socialLinkExtIcon" />
                   </a>
-                  <a
-                    className="quickLink"
-                    href="https://www.linkedin.com/in/michael-ian-japone-530474344/"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span className="quickIcon" aria-hidden="true" />
-                    <span>LinkedIn</span>
-                  </a>
-                </div>
+                ))}
               </div>
-
-              <div className="card cardTight">
-                <h3>Availability</h3>
-                <p className="muted">
-                  Currently available for frontend UI work and portfolio-ready builds.
-                </p>
-                <div className="availability">
-                  <span className="pulseDot" aria-hidden="true" />
-                  <span>Open to offers</span>
-                </div>
-              </div>
-            </aside>
-          </div>
-
-          {toast ? (
-            <div
-              className={`toast ${toast.type === 'success' ? 'toastSuccess' : 'toastError'}`}
-              role="status"
-              aria-live="polite"
-            >
-              <div className="toastIcon" aria-hidden="true" />
-              <div className="toastText">{toast.message}</div>
-            </div>
-          ) : null}
+            </article>
+          </aside>
         </section>
       </main>
 
-      <footer className="footer">
-        <div className="footerInner">
-          <span>
-            © {new Date().getFullYear()} {name}
-          </span>
-          <button
-            type="button"
-            className="footerLink"
-            onClick={() => scrollToSection('home')}
+      {techStackModalOpen ? (
+        <div
+          className="techModalBackdrop"
+          role="presentation"
+          onClick={() => setTechStackModalOpen(false)}
+        >
+          <div
+            className="techModalShell card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tech-stack-page-title"
+            onClick={(e) => e.stopPropagation()}
           >
-            Back to top
-          </button>
+            <div className="techModalTopBar">
+              <button
+                type="button"
+                className="techModalCloseX"
+                onClick={() => setTechStackModalOpen(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <h2 id="tech-stack-page-title" className="techModalPageTitle">
+              Tech Stack
+            </h2>
+            <p className="techModalSubtitle">Technologies I&apos;ve used</p>
+            <div className="techModalScroll">
+              <div className="techModalCategoryList">
+                {SKILL_CATEGORIES.map((category) => (
+                  <article key={category.title} className="techModalCategoryCard">
+                    <h3 className="techGroupLabel">{category.title}</h3>
+                    <div className="skillGrid">
+                      {category.items.map((tech, index) => (
+                        <div
+                          key={`${category.title}-${tech.name}-${index}`}
+                          className="skillItem"
+                        >
+                          <img
+                            className={`skillIcon${tech.invertOnDark ? ' skillIconMonoDark' : ''}`}
+                            src={tech.iconSrc}
+                            alt=""
+                            width={40}
+                            height={40}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          <span className="skillLabel">{tech.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-      </footer>
+      ) : null}
+
+      <ChatWidget darkMode={darkMode} />
     </div>
   )
 }

@@ -35,6 +35,65 @@ function normalizeEnvString(value) {
   return s
 }
 
+const OPENAI_API_KEY = normalizeEnvString(process.env.OPENAI_API_KEY)
+const OPENAI_MODEL =
+  normalizeEnvString(process.env.OPENAI_MODEL) || 'gpt-4o-mini'
+
+/** Grounds the model in the same facts shown on the portfolio (keep in sync with `src/App.tsx`). */
+const PORTFOLIO_SYSTEM_PROMPT = `You are the friendly chat assistant on Michael Ian Japone's portfolio website. You help visitors understand his background, projects, and how to contact him.
+
+Rules:
+- Use ONLY the facts in CONTEXT. If something is not listed there, say you do not have that detail on this site and give email or LinkedIn from CONTEXT.
+- Answer in normal conversational prose. Put facts, lists, and links directly in your reply.
+- Do NOT tell the user to look at a part of the website (no cards, sidebars, modals, “See all”, thumbnails, or navigation tips). Never answer with UI directions alone.
+- Short paragraphs, plain text, no markdown headings.
+- Do not invent employers, degrees, projects, dates, or URLs.
+- If the user sends only a short greeting (for example "hi", "hello", "hey", "good morning") with no other question or topic, reply with one brief friendly line only—no biography, lists, or invitations to ask something else.
+
+CONTEXT — Michael Ian Japone
+
+Location: Quezon, Philippines. Title on site: Full-Stack Developer.
+
+About (from site):
+- Full-Stack Developer with expertise in React, TypeScript, and Node.js, building scalable apps with clean architecture and intuitive design.
+- Has built and deployed AI-powered SaaS and real-time apps using Supabase, PostgreSQL, OpenAI API, and WebSockets.
+- Interested in Generative AI and RAG-based applications; values collaboration, ownership, and continuous learning.
+
+Projects (two showcased on the site):
+
+1) Habit Streak / Habit Streaks — full-stack habit tracker: sign up/in, habits with custom names and colors, calendar check-ins (including past months), current/longest streak, total check-ins, 28-day heatmap, edit/archive/restore/delete habits.
+   Live demo: https://habit-streak-three.vercel.app
+   Repo: https://github.com/MichaelIanJapone/Habit-Streak
+
+2) Agency Portal — multi-tenant SaaS for agencies: workspaces, clients/projects, statuses, deadlines, progress, close/reopen with rule checks, activity logging, dashboard analytics, responsive UI, archives, architecture aimed at production scale.
+   Live demo: https://agency-portal-orpin.vercel.app
+   Repo: https://github.com/MichaelIanJapone/Agency-Portal
+
+Experience (timeline on site):
+- BS Information Technology, Polytechnic University of the Philippines — 2026
+- Data Analyst Intern, Hometop Marketing & Development Corporation — 2025
+- Lead Developer / QA — Capstone: 4Ps System — 2024
+- "Hello world" / first line of code — 2021
+
+Contact & links:
+- Email: michaelianjapone@gmail.com
+- Resume: PDF at site path "/Michael-Ian-Japone Resume.pdf" (spaces URL-encoded as %20); typical download filename "Michael-Ian-Japone Resume.pdf".
+- GitHub: https://github.com/MichaelIanJapone
+- LinkedIn: https://www.linkedin.com/in/michael-ian-japone-530474344/
+
+Certificates (Google Drive PDFs):
+- DICT — Digital Literacy: Introduction to Data Analytics — https://drive.google.com/file/d/1347iRx78ugsrR2ZBaXS0PbXkcZ3h3GEq/view?usp=drive_link
+- DICT — Internet Media and Information Literacy Training — https://drive.google.com/file/d/1sanw7z3n1ujFjX3AG6oY5WunjiqJ6KfX/view?usp=drive_link
+- DICT — Creating Floor Plan and Network Design using MS Visio — https://drive.google.com/file/d/1Q1sJwhU1OJmy17LVHJltMyo0tfAjB1wL/view?usp=drive_link
+- PICSPro Membership Certification — https://drive.google.com/file/d/1Xf6Y8MBav8tPOm8lb7iWS-ff5wo4N0J9/view?usp=drive_link
+
+Tech stack (representative levels from the site; not exhaustive):
+- Front end: React.js, TypeScript, HTML, CSS, Tailwind CSS, JavaScript (mix of Expert/Advanced).
+- Backend: Node.js, TypeScript, Express.js, MongoDB, REST APIs.
+- Languages: Python, C#, C++, JavaScript, TypeScript.
+- Databases: MongoDB, MsSQL, PostgreSQL.
+- Other: ASP.NET, Git, GitHub, Figma, Cursor.`
+
 const SMTP_HOST_RAW = normalizeEnvString(process.env.SMTP_HOST)
 const SMTP_USER = normalizeEnvString(process.env.SMTP_USER)
 /** Gmail app passwords: spaces OK; strip ZWSP/BOM and other invisible chars that break copy-paste. */
@@ -100,7 +159,7 @@ app.use(cors())
 app.use(express.json({ limit: '100kb' }))
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true })
+  res.json({ ok: true, chatAi: Boolean(OPENAI_API_KEY) })
 })
 
 function validateEmail(value) {
@@ -110,6 +169,89 @@ function validateEmail(value) {
 function safeString(value) {
   return String(value ?? '')
 }
+
+app.post('/api/chat', async (req, res) => {
+  const body = req.body ?? {}
+  const raw = body.messages
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return res.status(400).json({ ok: false, error: 'messages must be a non-empty array.' })
+  }
+  if (raw.length > 32) {
+    return res.status(400).json({ ok: false, error: 'Too many messages.' })
+  }
+
+  const messages = []
+  for (const m of raw) {
+    const role = m.role
+    if (role !== 'user' && role !== 'assistant') {
+      return res.status(400).json({ ok: false, error: 'Invalid message role.' })
+    }
+    const content = safeString(m.content ?? m.text).trim()
+    if (!content) {
+      return res.status(400).json({ ok: false, error: 'Empty message content.' })
+    }
+    if (content.length > 1200) {
+      return res.status(400).json({ ok: false, error: 'Message too long.' })
+    }
+    messages.push({ role, content })
+  }
+
+  if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
+    return res.status(400).json({
+      ok: false,
+      error: 'Conversation must end with a user message.',
+    })
+  }
+
+  if (!OPENAI_API_KEY) {
+    return res.status(501).json({
+      ok: false,
+      code: 'NO_AI',
+      error: 'Portfolio chat AI is not configured (missing OPENAI_API_KEY).',
+    })
+  }
+
+  try {
+    const payload = {
+      model: OPENAI_MODEL,
+      messages: [
+        { role: 'system', content: PORTFOLIO_SYSTEM_PROMPT },
+        ...messages.slice(-24),
+      ],
+      max_tokens: 650,
+      temperature: 0.55,
+    }
+
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const data = await r.json().catch(() => ({}))
+    if (!r.ok) {
+      const errMsg =
+        typeof data?.error?.message === 'string'
+          ? data.error.message
+          : `OpenAI request failed (${r.status}).`
+      console.error('[chat] OpenAI error', r.status, errMsg)
+      return res.status(502).json({ ok: false, error: errMsg })
+    }
+
+    const reply = String(data?.choices?.[0]?.message?.content ?? '').trim()
+    if (!reply) {
+      return res.status(502).json({ ok: false, error: 'Empty model response.' })
+    }
+
+    return res.json({ ok: true, reply })
+  } catch (err) {
+    console.error('[chat]', err)
+    return res.status(502).json({ ok: false, error: 'Chat request failed.' })
+  }
+})
 
 app.post('/api/contact', (req, res) => {
   const body = req.body ?? {}
@@ -244,6 +386,13 @@ app.post('/api/contact', (req, res) => {
 
 app.listen(API_PORT, () => {
   console.log(`API server listening on http://localhost:${API_PORT}`)
+  if (OPENAI_API_KEY) {
+    console.log(`[chat] OpenAI enabled (model: ${OPENAI_MODEL}).`)
+  } else {
+    console.log(
+      '[chat] OpenAI disabled — add OPENAI_API_KEY to .env for natural-language replies (client falls back to keyword answers).',
+    )
+  }
   if (hasSmtpConfig && useGmailService) {
     console.log(
       '[contact] Gmail SMTP on port 465; SMTP_USER must match SMTP_FROM address. App Password: https://myaccount.google.com/apppasswords — set SMTP_VERIFY_ON_START=1 to test login on startup.',
