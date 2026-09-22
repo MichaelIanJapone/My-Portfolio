@@ -295,7 +295,7 @@ const SKILL_CATEGORIES: SkillCategory[] = [
       { name: 'Node.js', iconSrc: `${DEVICON}/nodejs/nodejs-original.svg`, level: 'Advanced' },
       { name: 'TypeScript', iconSrc: `${DEVICON}/typescript/typescript-original.svg`, level: 'Advanced' },
       { name: 'Express.js', iconSrc: `${DEVICON}/express/express-original.svg`, level: 'Advanced' },
-      { name: 'MongoDB', iconSrc: `${DEVICON}/mongodb/mongodb-original.svg`, level: 'Intermediate' },
+      { name: 'PostgreSQL', iconSrc: `${DEVICON}/postgresql/postgresql-original.svg`, level: 'Intermediate' },
       { name: 'REST APIs', iconSrc: `${DEVICON}/swagger/swagger-original.svg`, level: 'Intermediate' },
     ],
   },
@@ -303,8 +303,6 @@ const SKILL_CATEGORIES: SkillCategory[] = [
     title: 'Programming Languages',
     items: [
       { name: 'Python', iconSrc: `${DEVICON}/python/python-original.svg`, level: 'Advanced' },
-      { name: 'C#', iconSrc: `${DEVICON}/csharp/csharp-original.svg`, level: 'Intermediate' },
-      { name: 'C++', iconSrc: `${DEVICON}/cplusplus/cplusplus-original.svg`, level: 'Intermediate' },
       { name: 'JavaScript', iconSrc: `${DEVICON}/javascript/javascript-original.svg`, level: 'Advanced' },
       { name: 'TypeScript', iconSrc: `${DEVICON}/typescript/typescript-original.svg`, level: 'Advanced' },
     ],
@@ -312,7 +310,6 @@ const SKILL_CATEGORIES: SkillCategory[] = [
   {
     title: 'Database Management',
     items: [
-      { name: 'MongoDB', iconSrc: `${DEVICON}/mongodb/mongodb-original.svg`, level: 'Intermediate' },
       { name: 'MsSQL', iconSrc: `${DEVICON}/microsoftsqlserver/microsoftsqlserver-plain.svg`, level: 'Intermediate' },
       { name: 'PostgreSQL', iconSrc: `${DEVICON}/postgresql/postgresql-original.svg`, level: 'Intermediate' },
     ],
@@ -320,7 +317,6 @@ const SKILL_CATEGORIES: SkillCategory[] = [
   {
     title: 'Frameworks & Tools',
     items: [
-      { name: 'ASP.NET', iconSrc: `${DEVICON}/dot-net/dot-net-original.svg`, level: 'Intermediate' },
       { name: 'React.js', iconSrc: `${DEVICON}/react/react-original.svg`, level: 'Advanced' },
       { name: 'TypeScript', iconSrc: `${DEVICON}/typescript/typescript-original.svg`, level: 'Advanced' },
       { name: 'Node.js', iconSrc: `${DEVICON}/nodejs/nodejs-original.svg`, level: 'Advanced' },
